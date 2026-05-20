@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MediStock Pro — Inventory</title>
+  <style>
+    :root{
+      --primary:#3b82f6;
+      --primary-dark:#2563eb;
+      --muted:#6b7280;
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --sidebar:#ffffff;
+      --accent:#6366f1;
+      --radius:10px;
+      --shadow: 0 6px 20px rgba(15,23,42,0.08);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    html,body{height:100%;margin:0;background:var(--bg);color:#111827}
+    .app{
+      display:flex;
+      height:100vh;
+      overflow:hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      width:220px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.98));
+      box-shadow: none;
+      padding:28px 18px;
+      border-right:1px solid rgba(15,23,42,0.04);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+    .brand{font-weight:700;color:var(--primary);display:flex;align-items:center;gap:10px;font-size:18px}
+    .nav{
+      display:flex;flex-direction:column;gap:6px;margin-top:6px;
+    }
+    .nav a{
+      display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:var(--muted);text-decoration:none;
+    }
+    .nav a.active{background:linear-gradient(90deg,var(--primary),var(--accent));color:white;box-shadow:var(--shadow)}
+    .nav a:hover{background:rgba(0,0,0,0.03)}
+
+    /* MAIN AREA */
+    .main{
+      flex:1;
+      padding:28px;
+      overflow:auto;
+    }
+    .header{
+      display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;
+    }
+    .page-title{font-size:28px;font-weight:700}
+    .controls{display:flex;gap:12px;align-items:center}
+    .btn{
+      background:var(--primary);
+      color:white;
+      border:none;
+      padding:8px 14px;border-radius:8px;font-weight:600;
+      cursor:pointer;box-shadow:0 4px 12px rgba(59,130,246,0.18);
+    }
+    .btn.ghost{background:transparent;color:var(--muted);box-shadow:none;border:1px solid rgba(15,23,42,0.06)}
+
+    /* SUMMARY CARDS (optional small row) */
+    .cards{display:flex;gap:18px;margin-bottom:20px}
+    .card{background:var(--card);padding:18px;border-radius:12px;flex:1;box-shadow:var(--shadow);min-height:72px;display:flex;align-items:center;justify-content:center}
+
+    /* INVENTORY TABLE */
+    .table-wrap{background:transparent;border-radius:12px;padding:8px}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.95));
+      border-radius:10px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    thead th{
+      text-align:left;padding:16px 18px;font-weight:700;color:var(--muted);font-size:14px;border-bottom:1px solid rgba(15,23,42,0.06)
+    }
+    tbody td{padding:14px 18px;border-bottom:1px solid rgba(15,23,42,0.04);color:#111827}
+    tbody tr:last-child td{border-bottom:none}
+    .empty{
+      padding:70px 20px;text-align:center;color:var(--muted);font-size:16px;
+    }
+
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(2,6,23,0.55);display:none;align-items:center;justify-content:center;z-index:30}
+    .overlay.show{display:flex}
+    .modal{
+      width:420px;
+      max-height:84vh;
+      overflow:auto;
+      background:var(--card);
+      border-radius:12px;
+      box-shadow:0 20px 50px rgba(2,6,23,0.45);
+      padding:20px 22px;position:relative;
+    }
+    .modal h3{margin:0 0 12px 0}
+    .field{margin-bottom:14px}
+    .field label{display:block;margin-bottom:6px;color:var(--muted);font-weight:600}
+    .field input[type="text"],
+    .field input[type="number"],
+    .field input[type="date"],
+    .field select,
+    .field textarea{
+      width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(15,23,42,0.08);background:transparent;font-size:14px;
+    }
+    .field textarea{min-height:80px;resize:vertical}
+    .modal .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:12px}
+    .cancel{background:transparent;border:none;color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .add{background:var(--primary);color:#fff;padding:8px 14px;border-radius:8px;border:none;cursor:pointer}
+
+    /* small scrollbar style for modal */
+    .modal::-webkit-scrollbar{width:10px}
+    .modal::-webkit-scrollbar-thumb{background:rgba(15,23,42,0.08);border-radius:10px}
+
+    /* Responsive */
+    @media (max-width:800px){
+      .sidebar{display:none}
+      .modal{width:92vw}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"> <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="4" fill="#3b82f6"/><rect x="12" y="6" width="10" height="10" rx="3" fill="#6366f1"/></svg> MediStock Pro</div>
+       <nav>
+  <ul>
+    <li><a href="/">  <span>🏠</span> Dashboard </a></li>
+    <li><a href="/inventory"> <span>📦</span> Inventory </a></li>
+    <li><a href="/billing"> <span>🧾</span> Billing & Sales </a></li>
+    <li><a href="/customers"> <span>👤</span> Customers </a></li>
+    <li><a href="/notifications"> <span>🔔</span> Notifications </a></li>
+    <li><a href="/reports"> <span>📈</span> Reports </a></li>
+  </ul>
+</nav>
+    </aside>
+
+    <main class="main">
+      <div class="header">
+        <div>
+          <div class="page-title">Inventory</div>
+          <div style="color:var(--muted);margin-top:6px">Manage medicines, stock &amp; batches</div>
+        </div>
+        <div class="controls">
+          <button class="btn ghost" id="exportBtn">Export</button>
+          <button class="btn" id="openAdd">+ Add Medicine</button>
+        </div>
+      </div>
+
+      <div class="cards" style="display:none">
+        <div class="card"><div><strong>0</strong><div style="color:var(--muted)">Total Medicines</div></div></div>
+        <div class="card"><div><strong>0</strong><div style="color:var(--muted)">Low Stock</div></div></div>
+        <div class="card"><div><strong>0</strong><div style="color:var(--muted)">Customers</div></div></div>
+        <div class="card"><div><strong>$0.00</strong><div style="color:var(--muted)">Today's Sales</div></div></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:230px">Name</th>
+              <th>Manufacturer</th>
+              <th>Category</th>
+              <th>Stock</th>
+              <th>Price</th>
+              <th>Expiry Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody">
+            <tr><td colspan="7" class="empty">No medicines yet. Click <strong>Add Medicine</strong> to add new entries.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Add New Medicine</h3>
+
+      <form id="addForm" onsubmit="return false;">
+        <div class="field">
+          <label>Medicine Name *</label>
+          <input type="text" id="name" required placeholder="e.g. Paracetamol 500mg" />
+        </div>
+
+        <div class="field">
+          <label>Manufacturer *</label>
+          <input type="text" id="manu" required placeholder="Manufacturer name" />
+        </div>
+
+        <div class="field">
+          <label>Category *</label>
+          <select id="category">
+            <option value="">Select Category</option>
+            <option>Analgesic</option>
+            <option>Antibiotic</option>
+            <option>Antipyretic</option>
+            <option>Supplements</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Current Stock *</label>
+          <input type="number" id="stock" min="0" required placeholder="0" />
+        </div>
+
+        <div class="field">
+          <label>Minimum Stock Level *</label>
+          <input type="number" id="minstock" min="0" required placeholder="0" />
+        </div>
+
+        <div class="field">
+          <label>Price per Unit *</label>
+          <input type="number" id="price" min="0" step="0.01" required placeholder="0.00" />
+        </div>
+
+        <div class="field">
+          <label>Expiry Date *</label>
+          <!-- using type=date gives native date picker -->
+          <input type="date" id="expiry" required />
+        </div>
+
+        <div class="field">
+          <label>Batch Number *</label>
+          <input type="text" id="batch" required placeholder="Batch/lot number" />
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <textarea id="desc" placeholder="Optional notes..."></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="cancel" id="cancelBtn">Cancel</button>
+          <button class="add" id="saveBtn" type="submit">Add Medicine</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const openAdd = document.getElementById('openAdd');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const addForm = document.getElementById('addForm');
+    const inventoryBody = document.getElementById('inventoryBody');
+
+    openAdd.addEventListener('click', ()=> overlay.classList.add('show'));
+    cancelBtn.addEventListener('click', ()=> overlay.classList.remove('show'));
+    overlay.addEventListener('click', (e)=> {
+      if(e.target === overlay) overlay.classList.remove('show');
+    });
+
+    // simple add-to-table behavior (no backend)
+    addForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const manu = document.getElementById('manu').value.trim();
+      const category = document.getElementById('category').value;
+      const stock = document.getElementById('stock').value;
+      const price = parseFloat(document.getElementById('price').value).toFixed(2);
+      const expiry = document.getElementById('expiry').value;
+      const batch = document.getElementById('batch').value.trim();
+      const desc = document.getElementById('desc').value.trim();
+
+      if(!name || !manu) return alert('Please fill required fields.');
+
+      // format expiry dd-mm-yyyy if present
+      let expLabel = '';
+      if(expiry){
+        const d = new Date(expiry + 'T00:00:00');
+        if(!isNaN(d)) {
+          const dd = String(d.getDate()).padStart(2,'0');
+          const mm = String(d.getMonth()+1).padStart(2,'0');
+          const yy = d.getFullYear();
+          expLabel = dd + '-' + mm + '-' + yy;
+        } else expLabel = expiry;
+      }
+
+      // remove empty placeholder row if exists
+      const firstRow = inventoryBody.querySelector('tr');
+      if(firstRow && firstRow.querySelector('.empty')) inventoryBody.innerHTML = '';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(name)}</td>
+        <td>${escapeHtml(manu)}</td>
+        <td>${escapeHtml(category)}</td>
+        <td>${escapeHtml(stock)}</td>
+        <td>₹ ${price}</td>
+        <td>${expLabel}</td>
+        <td>${stock>0 ? '<span style="color:green">Available</span>' : '<span style="color:#d97706">Out of stock</span>'}</td>
+      `;
+      inventoryBody.appendChild(tr);
+
+      // reset form & close
+      addForm.reset();
+      overlay.classList.remove('show');
+    });
+
+    function escapeHtml(s){
+      return (s+'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+    }
+
+    // Optional: keyboard ESC to close
+    document.addEventListener('keydown', (e)=> {
+      if(e.key === 'Escape') overlay.classList.remove('show');
+    });
+  </script>
+</body>
+</html>

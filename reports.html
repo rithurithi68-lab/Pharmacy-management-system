@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediStock Pro - Reports (Interactive)</title>
+    <style>
+        :root {
+            --primary-color: #3f79f2; /* Blue */
+            --light-bg: #f5f7fa; /* Light background */
+            --sidebar-bg: #ffffff; /* White sidebar */
+            --text-color: #333;
+            --border-color: #eee;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar Styling --- */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0; /* Ensures sidebar doesn't shrink */
+        }
+
+        .logo {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 0 20px 20px 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer; /* Indicates it's clickable */
+        }
+
+        .menu-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 16px;
+        }
+
+        .menu-item span {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+        
+        .menu-item.active span {
+            color: white;
+        }
+
+        /* --- Main Content Styling --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* --- Reports Container Styling --- */
+        .reports-container {
+            display: flex;
+            gap: 30px; 
+            margin-top: 20px;
+        }
+
+        .report-card {
+            flex: 1; 
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .report-card h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Sales Summary Data Styling */
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .label {
+            font-weight: 400;
+            color: #666;
+        }
+
+        .value {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .placeholder {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 30px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">MediStock Pro</div>
+            <nav class="menu" id="sideMenu">
+                <a href="#" class="menu-item" data-page="dashboard">
+                    <span>🏠</span> Dashboard
+                </a>
+                <a href="#" class="menu-item" data-page="inventory">
+                    <span>📦</span> Inventory
+                </a>
+                <a href="#" class="menu-item" data-page="billing">
+                    <span>🧾</span> Billing & Sales
+                </a>
+                <a href="#" class="menu-item" data-page="customers">
+                    <span>👤</span> Customers
+                </a>
+                <a href="#" class="menu-item" data-page="notifications">
+                    <span>🔔</span> Notifications
+                </a>
+                <a href="#" class="menu-item active" data-page="reports">
+                    <span>📈</span> *Reports*
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <h1 id="pageTitle">Reports</h1>
+            </header>
+
+            <div id="pageContent">
+                <section class="reports-container">
+                    
+                    <div class="report-card">
+                        <h2>Sales Summary</h2>
+                        <div class="data-row">
+                            <span class="label">Total Sales:</span>
+                            <span class="value">$0.00</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="label">Total Transactions:</span>
+                            <span class="value">0</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="label">Average Sale:</span>
+                            <span class="value">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="report-card top-medicines">
+                        <h2>Top Medicines</h2>
+                        <p class="placeholder">List of top-selling medicines will appear here.</p>
+                    </div>
+
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 1. Get all menu items
+        const menuItems = document.querySelectorAll('.menu-item');
+        const pageTitle = document.getElementById('pageTitle');
+        const pageContent = document.getElementById('pageContent');
+
+        // 2. Define the content for each 'page' (for demonstration)
+        const pageContents = {
+            'dashboard': '<p class="placeholder" style="font-size: 1.2rem; padding: 50px;">This is the *DASHBOARD* content area.</p>',
+            'inventory': '<p class="placeholder" style="font-size: 1.2rem; padding: 50px;">This is the *INVENTORY* content area.</p>',
+            'billing': '<p class="placeholder" style="font-size: 1.2rem; padding: 50px;">This is the *BILLING & SALES* content area.</p>',
+            'customers': '<p class="placeholder" style="font-size: 1.2rem; padding: 50px;">This is the *CUSTOMERS* content area.</p>',
+            'notifications': '<p class="placeholder" style="font-size: 1.2rem; padding: 50px;">This is the *NOTIFICATIONS* content area.</p>',
+            'reports': `
+                <section class="reports-container">
+                    <div class="report-card">
+                        <h2>Sales Summary</h2>
+                        <div class="data-row"><span class="label">Total Sales:</span><span class="value">$0.00</span></div>
+                        <div class="data-row"><span class="label">Total Transactions:</span><span class="value">0</span></div>
+                        <div class="data-row"><span class="label">Average Sale:</span><span class="value">$0.00</span></div>
+                    </div>
+                    <div class="report-card top-medicines">
+                        <h2>Top Medicines</h2>
+                        <p class="placeholder">List of top-selling medicines will appear here.</p>
+                    </div>
+                </section>
+            `
+        };
+
+
+        // 3. Add a click event listener to each menu item
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(event) {
+                // Prevent the default link action (e.g., reloading the page)
+                event.preventDefault();
+
+                // Get the page name from the data-page attribute
+                const pageName = this.getAttribute('data-page');
+                const formattedName = pageName.charAt(0).toUpperCase() + pageName.slice(1).replace(/s$/, ''); // Capitalize and remove trailing 's'
+
+                // --- 4. Update the Active state (The "move" effect) ---
+                
+                // Remove 'active' class from all menu items
+                menuItems.forEach(i => i.classList.remove('active'));
+                
+                // Add 'active' class to the clicked item
+                this.classList.add('active');
+
+
+                // --- 5. Update the Main Content (Simulating page change) ---
+
+                // Update the Header Title
+                pageTitle.textContent = formattedName;
+
+                // Update the main content area with dynamic content
+                if (pageContents[pageName]) {
+                    pageContent.innerHTML = pageContents[pageName];
+                } else {
+                    pageContent.innerHTML = `<p class="placeholder">Content for ${formattedName} is not defined.</p>`;
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
